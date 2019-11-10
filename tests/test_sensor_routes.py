@@ -1,6 +1,5 @@
 import json
 import sqlite3
-import time
 import unittest
 from app import app
 
@@ -20,14 +19,37 @@ class SensorRoutesTestCases(unittest.TestCase):
         cur = conn.cursor()
 
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
-                    (self.device_uuid, 'temperature', 22, int(time.time()) - 100))
+                    (self.device_uuid, 'temperature', 22, 1))
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
-                    (self.device_uuid, 'temperature', 50, int(time.time()) - 50))
-        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
-                    (self.device_uuid, 'temperature', 100, int(time.time())))
+                    (self.device_uuid, 'temperature', 50, 5))
 
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
-                    ('other_uuid', 'temperature', 22, int(time.time())))
+                    (self.device_uuid, 'humidity', 44, 7))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'humidity', 24, 10))
+
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 100, 20))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 29, 20))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 4, 25))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 28, 30))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 100, 40))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 52, 50))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 4, 50))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    (self.device_uuid, 'temperature', 100, 50))
+
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    ('other_uuid', 'temperature', 22, 60))
+        cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
+                    ('another_uuid', 'humidity', 27, 60))
+
         conn.commit()
 
         app.config['TESTING'] = True
@@ -42,8 +64,8 @@ class SensorRoutesTestCases(unittest.TestCase):
         # Then we should receive a 200
         self.assertEqual(request.status_code, 200)
 
-        # And the response data should have three sensor readings
-        self.assertTrue(len(json.loads(request.data)) == 3)
+        # And the response data should have twelve sensor readings
+        self.assertTrue(len(json.loads(request.data)) == 12)
 
     def test_device_readings_post(self):
         # Given a device UUID
@@ -65,22 +87,56 @@ class SensorRoutesTestCases(unittest.TestCase):
         cur.execute('select * from readings where device_uuid="{}"'.format(self.device_uuid))
         rows = cur.fetchall()
 
-        # We should have three
-        self.assertTrue(len(rows) == 4)
+        # We should have thirteen
+        self.assertTrue(len(rows) == 13)
 
     def test_device_readings_get_temperature(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's temperature data only.
         """
-        self.assertTrue(False)
+        # Given a device UUID
+        # When we make a request with the given UUID
+        # And sensor type of "temperature"
+        request = self.client().get('/devices/{}/readings/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have ten sensor readings
+        self.assertTrue(len(res) == 10)
+
+        # And all readings should have the correct device_uuid
+        self.assertTrue(all([x['device_uuid'] == self.device_uuid for x in res]))
+
+        # And type "temperature"
+        self.assertTrue(all([x['type'] == 'temperature' for x in res]))
 
     def test_device_readings_get_humidity(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's humidity data only.
         """
-        self.assertTrue(False)
+        # Given a device UUID
+        # When we make a request with the given UUID
+        # And sensor type of "humidity"
+        request = self.client().get('/devices/{}/readings/?type=humidity'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have three sensor readings
+        self.assertTrue(len(res) == 2)
+
+        # And all readings should have the correct device_uuid
+        self.assertTrue(all([x['device_uuid'] == self.device_uuid for x in res]))
+
+        # And type "temperature"
+        self.assertTrue(all([x['type'] == 'humidity' for x in res]))
 
     def test_device_readings_get_past_dates(self):
         """
@@ -89,42 +145,112 @@ class SensorRoutesTestCases(unittest.TestCase):
         a specific date range. We should only get the readings
         that were created in this time range.
         """
-        self.assertTrue(False)
+        # Given a device UUID
+        # And a start and end date
+        # When we make a request with the given UUID and date range
+        request = self.client().get(
+            '/devices/{}/readings/'.format(self.device_uuid),
+            query_string={
+                'start': 7,
+                'end': 41,
+            }
+        )
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have seven sensor readings
+        self.assertTrue(len(res) == 7)
+
+        # And all readings should have a date_created between 7 and 41
+        self.assertTrue(all([7 <= x['date_created'] < 41 for x in res]))
 
     def test_device_readings_min(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's min sensor reading.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/min/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the minimum of 4
+        self.assertTrue(res['value'] == 4)
 
     def test_device_readings_max(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's max sensor reading.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/max/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the maximum of 4
+        self.assertTrue(res['value'] == 100)
 
     def test_device_readings_median(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's median sensor reading.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/median/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the median of 50
+        self.assertTrue(res['value'] == 50)
 
     def test_device_readings_mean(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's mean sensor reading value.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/mean/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the mean of 49
+        self.assertTrue(res['value'] == 49)
 
     def test_device_readings_mode(self):
         """
         This test should be implemented. The goal is to test that
         we are able to query for a device's mode sensor reading value.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/mode/?type=temperature'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the mode of 100
+        self.assertTrue(res['value'] == 100)
 
     def test_device_readings_quartiles(self):
         """
@@ -132,4 +258,17 @@ class SensorRoutesTestCases(unittest.TestCase):
         we are able to query for a device's 1st and 3rd quartile
         sensor reading value.
         """
-        self.assertTrue(False)
+        # Given a device UUID and sensor type
+        # When we make a request with the given UUID and sensor type
+        request = self.client().get('/devices/{}/readings/quartiles/?type=temperature&start=1&end=101'.format(self.device_uuid))
+
+        # Then we should receive a 200
+        self.assertEqual(request.status_code, 200)
+
+        res = json.loads(request.data)
+
+        # And the response data should have a value for the q1 of 22
+        self.assertTrue(res['quartile_1'] == 22)
+
+        # And the response data should have a value for the q3 of 100
+        self.assertTrue(res['quartile_3'] == 100)

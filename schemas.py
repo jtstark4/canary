@@ -14,3 +14,15 @@ class DeviceReadingInputSchema(Schema):
     type = fields.Str(missing=None, validate=validate.OneOf(SENSOR_TYPES))
     start = fields.Int(missing=None)
     end = fields.Int(missing=None)
+
+
+class DeviceReadingValueInputSchema(Schema):
+    type = fields.Str(required=True, validate=validate.OneOf(SENSOR_TYPES))
+    start = fields.Int(missing=None)
+    end = fields.Int(missing=None)
+
+
+class DeviceReadingQuartilesInputSchema(Schema):
+    type = fields.Str(required=True, validate=validate.OneOf(SENSOR_TYPES))
+    start = fields.Int(required=True)
+    end = fields.Int(required=True)

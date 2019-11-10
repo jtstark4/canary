@@ -62,13 +62,13 @@ Your task is to fork this repo and complete the following:
 
 - [X] Add field validation. Only *temperature* and *humidity* sensors are allowed with values between *0* and *100*.
 - [X] Add logic for query parameters for *type* and *start/end* dates.
-- [ ] Implement the min endpoint.
-- [ ] Implement the max endpoint.
-- [ ] Implement the median endpoint.
-- [ ] Implement the mean endpoint.
-- [ ] Implement the mode endpoint.
-- [ ] Implement the quartile endpoint.
-- [ ] Add and implement the stubbed out unit tests for your changes.
+- [X] Implement the min endpoint.
+- [X] Implement the max endpoint.
+- [X] Implement the median endpoint.
+- [X] Implement the mean endpoint.
+- [X] Implement the mode endpoint.
+- [X] Implement the quartile endpoint.
+- [X] Add and implement the stubbed out unit tests for your changes.
 - [ ] Update the README with any design decisions you made and why.
 
 When you're finished, send your git repo link to Michael Klein at michael@canary.is. If you have any questions, please do not hesitate to reach out!
