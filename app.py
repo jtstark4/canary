@@ -184,25 +184,27 @@ def request_device_readings_median(device_uuid):
         return err.messages, 400
 
     # Construct the query
-    query = 'select * from readings where device_uuid = ? and type = ?'
+    # The below query is a little convoluted - depending on the number of
+    # records I might decide just to do this in python rathen than in the
+    # SQL query
+    # I demonstrate how to do it in python earlier in the git commit history
+    where_query = 'where device_uuid = ? and type = ?'
     if data['start']:
-        query += ' and date_created >= ?'
+        where_query += ' and date_created >= ?'
     if data['end']:
-        query += ' and date_created < ?'
+        where_query += ' and date_created < ?'
 
-    params = tuple(p for p in (device_uuid, data['type'], data['start'], data['end']) if p)
+    query = f'select * from readings {where_query}'
+    query += f' order by value, date_created limit 1 offset (select count(*) / 2 from readings {where_query})'
+
+    params = 2 * tuple(p for p in (device_uuid, data['type'], data['start'], data['end']) if p)
 
     # Execute the query
     cur.execute(query, params)
-    rows = cur.fetchall()
-    # It should also be possible to construct a query to get the median via
-    # SQL, however this is simpler
-    rows = sorted(rows, key=lambda x: x['value'])
-    mid_index = len(rows) // 2
-    median_row = rows[mid_index]
+    row = cur.fetchone()
 
     # Return the JSON
-    return jsonify(dict(zip(['device_uuid', 'type', 'value', 'date_created'], median_row))), 200
+    return jsonify(dict(zip(['device_uuid', 'type', 'value', 'date_created'], row))), 200
 
 
 @app.route('/devices/<string:device_uuid>/readings/mean/', methods=['GET'])
