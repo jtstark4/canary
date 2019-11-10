@@ -60,7 +60,7 @@ Tests can be run via `pytest -v`.
 ## Tasks
 Your task is to fork this repo and complete the following:
 
-- [ ] Add field validation. Only *temperature* and *humidity* sensors are allowed with values between *0* and *100*.
+- [X] Add field validation. Only *temperature* and *humidity* sensors are allowed with values between *0* and *100*.
 - [ ] Add logic for query parameters for *type* and *start/end* dates.
 - [ ] Implement the min endpoint.
 - [ ] Implement the max endpoint.

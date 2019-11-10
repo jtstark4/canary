@@ -2,7 +2,8 @@ from flask import Flask, request
 from flask.json import jsonify
 import json
 import sqlite3
-import time
+from marshmallow import ValidationError
+from schemas import DeviceReadingSchema
 
 app = Flask(__name__)
 
@@ -40,13 +41,16 @@ def request_device_readings(device_uuid):
     if request.method == 'POST':
         # Grab the post parameters
         post_data = json.loads(request.data)
-        sensor_type = post_data.get('type')
-        value = post_data.get('value')
-        date_created = post_data.get('date_created', int(time.time()))
+
+        try:
+            # Validate the payload
+            data = DeviceReadingSchema().load(post_data)
+        except ValidationError as err:
+            return err.messages, 400
 
         # Insert data into db
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
-                    (device_uuid, sensor_type, value, date_created))
+                    (device_uuid, data['type'], data['value'], data['date_created']))
 
         conn.commit()
 
