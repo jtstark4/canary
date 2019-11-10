@@ -3,7 +3,7 @@ from flask.json import jsonify
 import json
 import sqlite3
 from marshmallow import ValidationError
-from schemas import DeviceReadingSchema
+from schemas import DeviceReadingSchema, DeviceReadingInputSchema
 
 app = Flask(__name__)
 
@@ -57,8 +57,28 @@ def request_device_readings(device_uuid):
         # Return success
         return 'success', 201
     else:
+        try:
+            # Validate the request args
+            data = DeviceReadingInputSchema().load(request.args)
+        except ValidationError as err:
+            return err.messages, 400
+
+        # Construct the query
+        # Ideally we would use an ORM instead of writing inline SQL
+        query = 'select * from readings where device_uuid = ?'
+        if data['type']:
+            query += ' and type = ?'
+        if data['start']:
+            query += ' and date_created >= ?'
+        if data['end']:
+            query += ' and date_created < ?'
+
+        # Doing this to avoid SQL injection, which would be possible if
+        # doing 'select * from readings where blah={}'.format(param)
+        params = tuple(p for p in (device_uuid, data['type'], data['start'], data['end']) if p)
+
         # Execute the query
-        cur.execute('select * from readings where device_uuid="{}"'.format(device_uuid))
+        cur.execute(query, params)
         rows = cur.fetchall()
 
         # Return the JSON
