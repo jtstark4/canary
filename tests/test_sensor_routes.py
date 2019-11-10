@@ -1,10 +1,9 @@
 import json
-import pytest
 import sqlite3
 import time
 import unittest
-
 from app import app
+
 
 class SensorRoutesTestCases(unittest.TestCase):
 
@@ -13,13 +12,13 @@ class SensorRoutesTestCases(unittest.TestCase):
         conn = sqlite3.connect('test_database.db')
         conn.execute('DROP TABLE IF EXISTS readings')
         conn.execute('CREATE TABLE IF NOT EXISTS readings (device_uuid TEXT, type TEXT, value INTEGER, date_created INTEGER)')
-        
+
         self.device_uuid = 'test_device'
 
         # Setup some sensor data
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        
+
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
                     (self.device_uuid, 'temperature', 22, int(time.time()) - 100))
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
@@ -49,10 +48,11 @@ class SensorRoutesTestCases(unittest.TestCase):
     def test_device_readings_post(self):
         # Given a device UUID
         # When we make a request with the given UUID to create a reading
-        request = self.client().post('/devices/{}/readings/'.format(self.device_uuid), data=
-            json.dumps({
+        request = self.client().post(
+            '/devices/{}/readings/'.format(self.device_uuid),
+            data=json.dumps({
                 'type': 'temperature',
-                'value': 100 
+                'value': 100
             }))
 
         # Then we should receive a 201

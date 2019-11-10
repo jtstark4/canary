@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, request
 from flask.json import jsonify
 import json
 import sqlite3
@@ -11,7 +11,8 @@ conn = sqlite3.connect('database.db')
 conn.execute('CREATE TABLE IF NOT EXISTS readings (device_uuid TEXT, type TEXT, value INTEGER, date_created INTEGER)')
 conn.close()
 
-@app.route('/devices/<string:device_uuid>/readings/', methods = ['POST', 'GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/', methods=['POST', 'GET'])
 def request_device_readings(device_uuid):
     """
     This endpoint allows clients to POST or GET data specific sensor types.
@@ -35,7 +36,7 @@ def request_device_readings(device_uuid):
         conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-   
+
     if request.method == 'POST':
         # Grab the post parameters
         post_data = json.loads(request.data)
@@ -46,7 +47,7 @@ def request_device_readings(device_uuid):
         # Insert data into db
         cur.execute('insert into readings (device_uuid,type,value,date_created) VALUES (?,?,?,?)',
                     (device_uuid, sensor_type, value, date_created))
-        
+
         conn.commit()
 
         # Return success
@@ -59,7 +60,8 @@ def request_device_readings(device_uuid):
         # Return the JSON
         return jsonify([dict(zip(['device_uuid', 'type', 'value', 'date_created'], row)) for row in rows]), 200
 
-@app.route('/devices/<string:device_uuid>/readings/min/', methods = ['GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/min/', methods=['GET'])
 def request_device_readings_min(device_uuid):
     """
     This endpoint allows clients to GET the min sensor reading for a device.
@@ -74,7 +76,8 @@ def request_device_readings_min(device_uuid):
 
     return 'Endpoint is not implemented', 501
 
-@app.route('/devices/<string:device_uuid>/readings/max/', methods = ['GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/max/', methods=['GET'])
 def request_device_readings_max(device_uuid):
     """
     This endpoint allows clients to GET the max sensor reading for a device.
@@ -89,7 +92,8 @@ def request_device_readings_max(device_uuid):
 
     return 'Endpoint is not implemented', 501
 
-@app.route('/devices/<string:device_uuid>/readings/median/', methods = ['GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/median/', methods=['GET'])
 def request_device_readings_median(device_uuid):
     """
     This endpoint allows clients to GET the median sensor reading for a device.
@@ -104,7 +108,8 @@ def request_device_readings_median(device_uuid):
 
     return 'Endpoint is not implemented', 501
 
-@app.route('/devices/<string:device_uuid>/readings/mean/', methods = ['GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/mean/', methods=['GET'])
 def request_device_readings_mean(device_uuid):
     """
     This endpoint allows clients to GET the mean sensor readings for a device.
@@ -119,7 +124,8 @@ def request_device_readings_mean(device_uuid):
 
     return 'Endpoint is not implemented', 501
 
-@app.route('/devices/<string:device_uuid>/readings/mode/', methods = ['GET'])
+
+@app.route('/devices/<string:device_uuid>/readings/mode/', methods=['GET'])
 def request_device_readings_mode(device_uuid):
     """
     This endpoint allows clients to GET the mode sensor reading value for a device.
@@ -134,8 +140,9 @@ def request_device_readings_mode(device_uuid):
 
     return 'Endpoint is not implemented', 501
 
-@app.route('/devices/<string:device_uuid>/readings/quartiles/', methods = ['GET'])
-def request_device_readings_mode(device_uuid):
+
+@app.route('/devices/<string:device_uuid>/readings/quartiles/', methods=['GET'])
+def request_device_readings_quartiles(device_uuid):
     """
     This endpoint allows clients to GET the 1st and 3rd quartile
     sensor reading value for a device.
@@ -147,6 +154,7 @@ def request_device_readings_mode(device_uuid):
     """
 
     return 'Endpoint is not implemented', 501
+
 
 if __name__ == '__main__':
     app.run()
