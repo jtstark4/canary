@@ -69,6 +69,13 @@ Your task is to fork this repo and complete the following:
 - [X] Implement the mode endpoint.
 - [X] Implement the quartile endpoint.
 - [X] Add and implement the stubbed out unit tests for your changes.
-- [ ] Update the README with any design decisions you made and why.
+- [X] Update the README with any design decisions you made and why.
 
 When you're finished, send your git repo link to Michael Klein at michael@canary.is. If you have any questions, please do not hesitate to reach out!
+
+## Notes
+I used the marshmallow library for serialization and validation of the post payload and request args.
+This allowed me to separate the validation logic into separate schema classes and away from the logic for each of the endpoints.
+I decided to calculate the quartiles in python rather than in a SQL query, since the latter would have been more complicated and less readable (although faster).
+Ideally I would use an ORM like SQLAlchemy rather than writing inline SQL queries.
+I implemented the stubbed out unit tests for the happy case only. Ideally I would write more unit tests to cover edge cases and validation errors.
